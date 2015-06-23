@@ -14,8 +14,8 @@ import (
 
 type Config struct {
 	Dir       string `help:"output directory"`
-	Overwrite bool   `help:"duplicates are overwrite (defaults to auto-rename)"`
-	Auth      string `help:"authenticate with basic auth (in the form 'username:password')"`
+	Overwrite bool   `help:"duplicates are overwritten (auto-renames files by default)"`
+	Auth      string `help:"require basic auth 'username:password'"`
 }
 
 func New(config Config) http.Handler {
