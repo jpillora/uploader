@@ -10,7 +10,7 @@ import (
 	uploader "github.com/jpillora/uploader/lib"
 )
 
-var VERSION = "0.0.0"
+var version = "0.0.0"
 
 func main() {
 	//cli config
@@ -26,7 +26,7 @@ func main() {
 	opts.New(&config).
 		Name("uploader").
 		Repo("github.com/jpillora/uploader").
-		Version(VERSION).
+		Version(version).
 		Parse()
 
 	log.Printf("listening on %d...", config.Port)

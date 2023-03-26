@@ -2,30 +2,37 @@
 
 A small server to receive files over HTTP
 
+![screenshot](https://user-images.githubusercontent.com/633843/227771230-347164e2-61d6-4e00-a4a2-e0662a5d5dbf.png)
+
 ### Install
 
 **Binaries**
 
-See [the latest release](https://github.com/jpillora/uploader/releases/latest) or download it with this one-liner: `curl i.jpillora.com/uploader | bash`
+See [the latest release](https://github.com/jpillora/uploader/releases/latest) or download it with this one-liner: `curl https://i.jpillora.com/uploader! | bash`
 
 **Source**
 
 ``` sh
-$ go get -v github.com/jpillora/uploader
+$ go install -v github.com/jpillora/uploader@latest
 ```
 
 ### Usage
 
-```
+```sh
+# server
 $ uploader
-2015/06/24 00:46:08 listening on 3000...
+2023/03/26 21:55:58 listening on 3000...
+2023/03/26 21:55:58 saving files to: /tmp
 
 ...
 
+# client
 $ curl -F file=@my-file.txt localhost:3000
-
+# client
+# OPEN BROWSER, DRAG AND DROP FILE
 ...
 
+# server
 2015/06/24 01:10:59 #0001 receiving my-file.txt
 2015/06/24 01:10:59 #0001 received 53B
 ```
@@ -36,7 +43,7 @@ $ curl -F file=@my-file.txt localhost:3000
 
 #### MIT License
 
-Copyright © 2015 Jaime Pillora &lt;dev@jpillora.com&gt;
+Copyright © 2023 Jaime Pillora &lt;dev@jpillora.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
