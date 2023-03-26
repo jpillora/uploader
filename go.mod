@@ -3,6 +3,7 @@ module github.com/jpillora/uploader
 go 1.20
 
 require (
+	github.com/NYTimes/gziphandler v1.1.1
 	github.com/jpillora/opts v1.2.3
 	github.com/jpillora/requestlog v1.0.0
 	github.com/jpillora/sizestr v1.0.0

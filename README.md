@@ -4,6 +4,13 @@ A small server to receive files over HTTP, with an embedded web UI:
 
 <img width="300px" alt="screenshot" src="https://user-images.githubusercontent.com/633843/227771230-347164e2-61d6-4e00-a4a2-e0662a5d5dbf.png" />
 
+### Features
+
+* Simple
+* Single binary; Tiny Docker image
+* Classic write-only "drop box"; No file reads ever
+* Renames files, not overwrite, by default
+
 ### Install
 
 **Binaries**

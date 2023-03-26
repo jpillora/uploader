@@ -10,13 +10,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/jpillora/sizestr"
 )
 
 //go:embed static/*
 var content embed.FS
-
-var contentHandler = http.FileServer(http.FS(content))
 
 type Config struct {
 	Dir       string `help:"output directory (defaults to tmp)"`
@@ -32,11 +31,13 @@ func New(config Config) http.Handler {
 	if info, err := os.Stat(config.Dir); err != nil || !info.IsDir() {
 		log.Fatalf("Invalid directory: %s", config.Dir)
 	}
-
 	log.Printf("saving files to: %s", config.Dir)
 
-	uploadID := 1
+	var contentHandler = gziphandler.GzipHandler(
+		http.FileServer(http.FS(content)),
+	)
 
+	uploadID := 1
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
