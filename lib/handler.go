@@ -1,6 +1,7 @@
 package uploader
 
 import (
+	"embed"
 	"fmt"
 	"io"
 	"log"
@@ -12,17 +13,27 @@ import (
 	"github.com/jpillora/sizestr"
 )
 
+//go:embed static/*
+var content embed.FS
+
+var contentHandler = http.FileServer(http.FS(content))
+
 type Config struct {
-	Dir       string `help:"output directory"`
+	Dir       string `help:"output directory (defaults to tmp)"`
 	Overwrite bool   `help:"duplicates are overwritten (auto-renames files by default)"`
 	Auth      string `help:"require basic auth 'username:password'"`
 }
 
 func New(config Config) http.Handler {
 
+	if config.Dir == "" {
+		config.Dir = os.TempDir()
+	}
 	if info, err := os.Stat(config.Dir); err != nil || !info.IsDir() {
 		log.Fatalf("Invalid directory: %s", config.Dir)
 	}
+
+	log.Printf("saving files to: %s", config.Dir)
 
 	uploadID := 1
 
@@ -36,6 +47,12 @@ func New(config Config) http.Handler {
 				w.Write([]byte("Access Denied"))
 				return
 			}
+		}
+
+		if r.Method == "GET" {
+			r.URL.Path = "/static" + r.URL.Path
+			contentHandler.ServeHTTP(w, r)
+			return
 		}
 
 		if r.Method != "POST" {

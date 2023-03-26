@@ -6,7 +6,8 @@ import (
 	"net/http"
 
 	"github.com/jpillora/opts"
-	"github.com/jpillora/uploader/lib"
+	"github.com/jpillora/requestlog"
+	uploader "github.com/jpillora/uploader/lib"
 )
 
 var VERSION = "0.0.0"
@@ -14,11 +15,12 @@ var VERSION = "0.0.0"
 func main() {
 	//cli config
 	config := struct {
-		Port            int `help:"listening port"`
+		Port            int  `help:"listening port"`
+		Log             bool `help:"enable request logging"`
 		uploader.Config `type:"embedded"`
 	}{
 		Port:   3000,
-		Config: uploader.Config{Dir: "."},
+		Config: uploader.Config{},
 	}
 
 	opts.New(&config).
@@ -28,5 +30,12 @@ func main() {
 		Parse()
 
 	log.Printf("listening on %d...", config.Port)
-	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), uploader.New(config.Config))
+
+	h := uploader.New(config.Config)
+
+	if config.Log {
+		h = requestlog.Wrap(h)
+	}
+
+	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), h)
 }
