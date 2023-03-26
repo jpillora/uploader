@@ -1,6 +1,6 @@
 # uploader
 
-A small server to receive files over HTTP, with an embedded web UI
+A small server to receive files over HTTP, with an embedded web UI:
 
 <img width="300px" alt="screenshot" src="https://user-images.githubusercontent.com/633843/227771230-347164e2-61d6-4e00-a4a2-e0662a5d5dbf.png" />
 
@@ -9,6 +9,12 @@ A small server to receive files over HTTP, with an embedded web UI
 **Binaries**
 
 See [the latest release](https://github.com/jpillora/uploader/releases/latest) or download it with this one-liner: `curl https://i.jpillora.com/uploader! | bash`
+
+**Docker**
+
+``` sh
+$ docker run --rm -it -p 3000:3000 -v /tmp:/tmp ghcr.io/jpillora/uploader
+```
 
 **Source**
 
@@ -35,6 +41,27 @@ $ curl -F file=@my-file.txt localhost:3000
 # server
 2015/06/24 01:10:59 #0001 receiving my-file.txt
 2015/06/24 01:10:59 #0001 received 53B
+```
+
+### CLI Usage
+
+```
+  Usage: uploader [options]
+
+  Options:
+  --port, -p       listening port (default 3000)
+  --no-log, -n     disable request logging
+  --dir, -d        output directory (defaults to tmp)
+  --overwrite, -o  duplicates are overwritten (auto-renames files by default)
+  --auth, -a       require basic auth 'username:password'
+  --version, -v    display version
+  --help, -h       display help
+
+  Version:
+    0.0.0
+
+  Read more:
+    github.com/jpillora/uploader
 ```
 
 ### Programmatic Usage

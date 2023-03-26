@@ -16,7 +16,7 @@ func main() {
 	//cli config
 	config := struct {
 		Port            int  `help:"listening port"`
-		Log             bool `help:"enable request logging"`
+		NoLog           bool `help:"disable request logging"`
 		uploader.Config `type:"embedded"`
 	}{
 		Port:   3000,
@@ -33,7 +33,7 @@ func main() {
 
 	h := uploader.New(config.Config)
 
-	if config.Log {
+	if !config.NoLog {
 		h = requestlog.Wrap(h)
 	}
 
