@@ -71,7 +71,7 @@ func New(config Config) http.Handler {
 		part, err := multi.NextPart()
 		if err != nil {
 			w.WriteHeader(400)
-			fmt.Fprint(w, "Expecting multipart form (%s)", err)
+			fmt.Fprintf(w, "Expecting multipart form (%s)", err)
 			return
 		}
 		defer part.Close()
