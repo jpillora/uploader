@@ -7,8 +7,10 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/NYTimes/gziphandler"
+	"github.com/jpillora/cookieauth"
 	"github.com/jpillora/sizestr"
 	"github.com/jpillora/uploader/internal/x"
 )
@@ -29,6 +31,7 @@ func New(config Config) (http.Handler, error) {
 	if log == nil {
 		log = slog.Default()
 	}
+
 	if config.Dir == "" {
 		config.Dir = os.TempDir()
 	}
@@ -41,18 +44,8 @@ func New(config Config) (http.Handler, error) {
 	)
 
 	uploadID := 1
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	h := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
-
-		l := log.WithGroup(fmt.Sprintf("f%d", uploadID))
-		if config.Auth != "" {
-			u, p, _ := r.BasicAuth()
-			if config.Auth != u+":"+p {
-				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("Access Denied"))
-				return
-			}
-		}
 
 		if r.Method == "GET" {
 			r.URL.Path = "/static" + r.URL.Path
@@ -92,6 +85,8 @@ func New(config Config) (http.Handler, error) {
 			filename = "file"
 		}
 
+		l := log.WithGroup(fmt.Sprintf("f%d", uploadID))
+		uploadID++
 		path := x.Join(config.Overwrite, config.Dir, filename)
 		file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
@@ -107,6 +102,13 @@ func New(config Config) (http.Handler, error) {
 		} else {
 			l.Info("received", "size", sizestr.ToString(n))
 		}
-		uploadID++
-	}), nil
+	}))
+
+	if len(config.Auth) > 0 {
+		log.Info("enable basic auth")
+		userpass := strings.SplitN(config.Auth, ":", 2)
+		h = cookieauth.Wrap(h, userpass[0], userpass[1])
+	}
+
+	return h, nil
 }
