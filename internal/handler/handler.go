@@ -1,37 +1,40 @@
-package uploader
+package handler
 
 import (
 	"embed"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/jpillora/sizestr"
+	"github.com/jpillora/uploader/internal/x"
 )
 
 //go:embed static/*
 var content embed.FS
 
 type Config struct {
-	Dir       string `help:"output directory (defaults to tmp)"`
-	Overwrite bool   `help:"duplicates are overwritten (auto-renames files by default)"`
-	Auth      string `help:"require basic auth 'username:password'"`
+	Dir       string
+	Overwrite bool
+	Auth      string
+	Logger    *slog.Logger
 }
 
-func New(config Config) http.Handler {
+func New(config Config) (http.Handler, error) {
 
+	log := config.Logger
+	if log == nil {
+		log = slog.Default()
+	}
 	if config.Dir == "" {
 		config.Dir = os.TempDir()
 	}
 	if info, err := os.Stat(config.Dir); err != nil || !info.IsDir() {
-		log.Fatalf("Invalid directory: %s", config.Dir)
+		return nil, fmt.Errorf("invalid directory: %s", config.Dir)
 	}
-	log.Printf("saving files to: %s", config.Dir)
 
 	var contentHandler = gziphandler.GzipHandler(
 		http.FileServer(http.FS(content)),
@@ -41,6 +44,7 @@ func New(config Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
+		l := log.WithGroup(fmt.Sprintf("f%d", uploadID))
 		if config.Auth != "" {
 			u, p, _ := r.BasicAuth()
 			if config.Auth != u+":"+p {
@@ -88,37 +92,21 @@ func New(config Config) http.Handler {
 			filename = "file"
 		}
 
-		path := filepath.Join(config.Dir, filename)
-		if !config.Overwrite {
-			count := 1
-			for {
-				if _, err := os.Stat(path); os.IsNotExist(err) {
-					break
-				}
-				ext := filepath.Ext(path)
-				prefix := strings.TrimSuffix(path, ext)
-				if count > 1 {
-					prefix = strings.TrimSuffix(prefix, fmt.Sprintf("-%d", count))
-				}
-				count++
-				path = fmt.Sprintf("%s-%d%s", prefix, count, ext)
-			}
-		}
-
+		path := x.Join(config.Overwrite, config.Dir, filename)
 		file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
-			log.Printf("file error: %s", err)
+			l.Error("open-file", "err", err)
 			w.WriteHeader(500)
 			return
 		}
 		defer file.Close()
 
-		log.Printf("#%04d receiving %s", uploadID, path)
+		l.Info("receiving", "path", path)
 		if n, err := io.Copy(file, part); err != nil {
-			log.Printf("#%04d receive error: %s", uploadID, err)
+			l.Error("receive-copy", "err", err)
 		} else {
-			log.Printf("#%04d received %s", uploadID, sizestr.ToString(n))
+			l.Info("received", "size", sizestr.ToString(n))
 		}
 		uploadID++
-	})
+	}), nil
 }

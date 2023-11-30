@@ -1,6 +1,6 @@
 # uploader
 
-A small server to receive files over HTTP, with an embedded web UI:
+A small server to receive files over HTTP and UDP, with an embedded web UI:
 
 <img width="300px" alt="screenshot" src="https://user-images.githubusercontent.com/633843/227771230-347164e2-61d6-4e00-a4a2-e0662a5d5dbf.png" />
 
@@ -55,14 +55,23 @@ $ curl -F file=@my-file.txt localhost:3000
 ```
   Usage: uploader [options]
 
+  note: udp creates files using a stream of packets. udp packets are not authenticated,
+  so it's highly recommended that you set an allowed-ip range to prevent misuse.
+  udp packets are all appended to a file called 'md5(<src-ip>:<src-port>).bin'.
+  udp streams are considered closed after --udp-close and the file will be closed.
+
   Options:
-  --port, -p       listening port (default 3000)
-  --no-log, -n     disable request logging
-  --dir, -d        output directory (defaults to tmp)
-  --overwrite, -o  duplicates are overwritten (auto-renames files by default)
-  --auth, -a       require basic auth 'username:password'
-  --version, -v    display version
-  --help, -h       display help
+  --dir, -d         output directory (defaults to tmp)
+  --overwrite, -o   duplicates are overwritten (auto-renames files by default)
+  --auth, -a        require basic auth 'username:password' on http connections
+  --port, -p        tcp listening port (default 3000)
+  --udp-port, -u    udp listening port (default disabled)
+  --udp-close       close udp file after timeout (default 2s)
+  --no-log, -n      disable http request logging
+  --allowed-ip, -i  allowed ip range (allows multiple)
+  --verbose, -v     enable verbose logging
+  --version         display version
+  --help, -h        display help
 
   Version:
     0.0.0
@@ -70,10 +79,6 @@ $ curl -F file=@my-file.txt localhost:3000
   Read more:
     github.com/jpillora/uploader
 ```
-
-### Programmatic Usage
-
-[![GoDoc](https://godoc.org/github.com/jpillora/uploader/lib?status.svg)](https://godoc.org/github.com/jpillora/uploader/lib)
 
 #### MIT License
 
